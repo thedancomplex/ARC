@@ -22,8 +22,9 @@ public class MainSend extends ActionBarActivity {
     String str=null;
     byte[] send_data = new byte[1024];
     byte[] receiveData = new byte[1024];
-    Button bt_open_port,bt2,bt3,bt4;
+    Button bt_open_port,bt_send_port,bt3,bt4;
     TextView txt5,txt1;
+    DatagramSocket client_socket = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +58,35 @@ public class MainSend extends ActionBarActivity {
                 str="temp";
                 try {
                     bt_open_port.setText("Dan2");
-                    client();
+                    client_open();
                     bt_open_port.setText("Sent");
+
+                    //txt1.setText(modifiedSentence);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    txt1.setText(e.toString());
+                    e.printStackTrace();
+                }
+            }
+
+        });
+
+
+
+
+        bt_send_port = (Button) findViewById(R.id.button_send_port);
+        bt_send_port.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                bt_send_port.setText("Dan1");
+                // Perform action on click
+                //textIn.setText("test");
+                //txt2.setText("text2");
+                //task.execute(null);
+                str="temp";
+                try {
+                    bt_send_port.setText("Dan2");
+                    client_send();
+                    bt_send_port.setText("Sent");
 
                     //txt1.setText(modifiedSentence);
                 } catch (IOException e) {
@@ -97,10 +125,13 @@ public class MainSend extends ActionBarActivity {
 
 
     //public void client() throws IOException {
-    public void client() throws IOException {
+    public void client_open() throws IOException {
         //SystemClock.sleep(1000);
         bt_open_port.setText("Dan3");
-        DatagramSocket client_socket = new DatagramSocket(2362);
+        client_socket = new DatagramSocket(2362);
+    }
+    public void client_send() throws IOException {
+        //SystemClock.sleep(1000);
         bt_open_port.setText("Dan4");
         InetAddress IPAddress =  InetAddress.getByName("192.168.1.10");
         bt_open_port.setText("Dan5");
