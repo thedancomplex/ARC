@@ -14,7 +14,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.os.SystemClock;
 import android.os.StrictMode;
-
+import android.widget.EditText;
+import android.view.MotionEvent;
 
 public class MainSend extends ActionBarActivity {
     private static final String host = null;
@@ -23,8 +24,11 @@ public class MainSend extends ActionBarActivity {
     byte[] send_data = new byte[1024];
     byte[] receiveData = new byte[1024];
     Button bt_open_port,bt_send_port,bt3,bt4;
-    TextView txt5,txt1;
+    TextView txt0,txt1, txt_touch_x, txt_touch_y;
+    EditText txt_ip, txt_port;
     DatagramSocket client_socket = null;
+    int mPort = 2362;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,16 +81,14 @@ public class MainSend extends ActionBarActivity {
         bt_send_port = (Button) findViewById(R.id.button_send_port);
         bt_send_port.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                bt_send_port.setText("Dan1");
                 // Perform action on click
                 //textIn.setText("test");
                 //txt2.setText("text2");
                 //task.execute(null);
                 str="temp";
                 try {
-                    bt_send_port.setText("Dan2");
                     client_send();
-                    bt_send_port.setText("Sent");
+
 
                     //txt1.setText(modifiedSentence);
                 } catch (IOException e) {
@@ -124,24 +126,41 @@ public class MainSend extends ActionBarActivity {
     }
 
 
+    /* Location information */
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int x = (int)event.getX();
+        int y = (int)event.getY();
+        txt_touch_x   = (TextView)findViewById(R.id.textView_touch_x);
+        txt_touch_y   = (TextView)findViewById(R.id.textView_touch_y);
+        txt_touch_x.setText(Integer.toString(x));
+        txt_touch_y.setText(Integer.toString(y));
+        /*
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_UP:
+        }
+        */
+        return false;
+    }
+
+
     //public void client() throws IOException {
     public void client_open() throws IOException {
         //SystemClock.sleep(1000);
-        bt_open_port.setText("Dan3");
-        client_socket = new DatagramSocket(2362);
+        txt_port   = (EditText)findViewById(R.id.editText_port);
+        mPort = Integer.parseInt(txt_port.getText().toString());
+        client_socket = new DatagramSocket(mPort);
+        bt_send_port.setText("Port Open");
     }
     public void client_send() throws IOException {
         //SystemClock.sleep(1000);
-        bt_open_port.setText("Dan4");
-        InetAddress IPAddress =  InetAddress.getByName("192.168.1.10");
-        bt_open_port.setText("Dan5");
+        txt_ip   = (EditText)findViewById(R.id.editText_ip);
+        InetAddress IPAddress =  InetAddress.getByName(txt_ip.getText().toString());
         str="dan1";
-        bt_open_port.setText("Dan6");
         send_data = str.getBytes();
-        bt_open_port.setText("Dan7");
-        DatagramPacket send_packet = new DatagramPacket(send_data,str.length(), IPAddress, 2362);
-        bt_open_port.setText("Dan8");
+        DatagramPacket send_packet = new DatagramPacket(send_data,str.length(), IPAddress, mPort);
         client_socket.send(send_packet);
-        bt_open_port.setText("Dan9");
     }
 }
