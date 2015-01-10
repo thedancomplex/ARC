@@ -16,6 +16,20 @@ import android.os.SystemClock;
 import android.os.StrictMode;
 import android.widget.EditText;
 import android.view.MotionEvent;
+import android.graphics.PointF;
+import android.util.SparseArray;
+import android.graphics.drawable.Drawable;
+import android.view.SurfaceHolder;
+import android.content.Context;
+import java.util.TimerTask;
+import java.util.Timer;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Color;
+import android.widget.ImageView;
+import android.graphics.Bitmap;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 public class MainSend extends ActionBarActivity {
     private static final String host = null;
@@ -28,11 +42,68 @@ public class MainSend extends ActionBarActivity {
     EditText txt_ip, txt_port;
     DatagramSocket client_socket = null;
     int mPort = 2362;
+    private SparseArray<PointF> mActivePointers;
+    boolean pressedUp = false;
+    private SurfaceHolder holder;
+    Timer t = new Timer();
+    Paint paint = new Paint();
+    ImageView drawingImageView;
 
+    /* calibration for nexus 7 */
+    double touch_center_y = 660.0;
+    double touch_center_x = 960.0;
+    double touch_delta_x = 400.0;
+    double touch_delta_y = 280.0;
+    double joy_left_center_x = 245.0;
+    double joy_left_center_y = 880.0;
+    double joy_right_center_x = 1685.0;
+    double joy_right_center_y = 880.0;
+    double joy_right_radius = 180.0;
+    double joy_left_radius = 180.0;
+    double button_and_center_x = 1680.0;
+    double button_and_center_y = 570.0;
+    double button_and_radius = 60.0;
+    double button_at_center_x = 1680.0;
+    double button_at_center_y = 285.0;
+    double button_at_radius = 60.0;
+    double button_hash_center_x = 1520.0;
+    double button_hash_center_y = 425.0;
+    double button_hash_radius = 60.0;
+    double button_percent_center_x = 1825.0;
+    double button_percent_center_y = 425.0;
+    double button_percent_radius = 60.0;
+    double button_start_center_x = 365.0;
+    double button_start_center_y = 630.0;
+    double button_start_delta_x = 95.0;
+    double button_start_delta_y = 45.0;
+    double button_select_center_x = 120.0;
+    double button_select_center_y = 630.0;
+    double button_select_delta_x = 95.0;
+    double button_select_delta_y = 45.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mActivePointers = new SparseArray<PointF>();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //BitmapDrawable ob = new BitmapDrawable(getResources(), bitmap)
+        //image.setBackground(Drawable background)
+
 
 
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -54,16 +125,14 @@ public class MainSend extends ActionBarActivity {
         bt_open_port = (Button) findViewById(R.id.button_open_port);
         bt_open_port.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                bt_open_port.setText("Dan1");
+                //bt_open_port.setText("Dan1");
                 // Perform action on click
                 //textIn.setText("test");
                 //txt2.setText("text2");
                 //task.execute(null);
                 str="temp";
                 try {
-                    bt_open_port.setText("Dan2");
                     client_open();
-                    bt_open_port.setText("Sent");
 
                     //txt1.setText(modifiedSentence);
                 } catch (IOException e) {
@@ -125,7 +194,6 @@ public class MainSend extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     /* Location information */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -135,6 +203,74 @@ public class MainSend extends ActionBarActivity {
         txt_touch_y   = (TextView)findViewById(R.id.textView_touch_y);
         txt_touch_x.setText(Integer.toString(x));
         txt_touch_y.setText(Integer.toString(y));
+        //txt1.setText(Integer.toString(event.getPointerCount()));
+
+        /*
+        try {
+            client_send_buff(Integer.toString(x));
+            //txt1.setText(modifiedSentence);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            txt1.setText(e.toString());
+            e.printStackTrace();
+        }
+*/
+
+
+        switch (event.getAction()) {
+
+            case MotionEvent.ACTION_DOWN:
+
+                if(pressedUp == false){
+                    pressedUp = true;
+                    try {
+                        txt1.setText("dan1");
+                        client_send_buff("xx");
+                        txt1.setText("dan");
+                        //txt1.setText(modifiedSentence);
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        txt1.setText(e.toString());
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+
+                pressedUp = false;
+
+        }
+
+
+
+
+
+        txt1.setText("dana");
+        for (int size = event.getPointerCount(), i = 0; i < size; i++) {
+            txt1.setText("danb");
+            PointF point = mActivePointers.get(event.getPointerId(i));
+            txt1.setText("danc");
+            if (1==1) {
+                txt1.setText("dand");
+                float xx = event.getX(i);
+                float yy = event.getY(i);
+                parseTouch(xx,yy);
+                try {
+
+                    if(i == 2) {
+                        client_send_buff(Integer.toString((int) xx));
+                    }
+
+                    //txt1.setText(modifiedSentence);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    txt1.setText(e.toString());
+                    e.printStackTrace();
+                }
+
+            }
+        }
+
         /*
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -144,15 +280,20 @@ public class MainSend extends ActionBarActivity {
         */
         return false;
     }
-
-
+/*
+    public double[] getCenterSquare(float x, float y) {
+        double[] xy = {0.0, 0.0};
+        xy[0] =
+        return xy;
+    }
+*/
     //public void client() throws IOException {
     public void client_open() throws IOException {
         //SystemClock.sleep(1000);
         txt_port   = (EditText)findViewById(R.id.editText_port);
         mPort = Integer.parseInt(txt_port.getText().toString());
         client_socket = new DatagramSocket(mPort);
-        bt_send_port.setText("Port Open");
+        bt_open_port.setText("Port Open");
     }
     public void client_send() throws IOException {
         //SystemClock.sleep(1000);
@@ -163,4 +304,81 @@ public class MainSend extends ActionBarActivity {
         DatagramPacket send_packet = new DatagramPacket(send_data,str.length(), IPAddress, mPort);
         client_socket.send(send_packet);
     }
+
+    public void client_send_buff(String buff) throws IOException {
+        //SystemClock.sleep(1000);
+        txt_ip   = (EditText)findViewById(R.id.editText_ip);
+        InetAddress IPAddress =  InetAddress.getByName(txt_ip.getText().toString());
+        str=buff;
+        send_data = str.getBytes();
+        DatagramPacket send_packet = new DatagramPacket(send_data,str.length(), IPAddress, mPort);
+        client_socket.send(send_packet);
+        try {Thread.sleep(100);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public void send_buff(String buff) {
+        //SystemClock.sleep(1000);
+        try {
+            client_send_buff(buff);
+            //txt1.setText(modifiedSentence);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            txt1.setText(e.toString());
+            e.printStackTrace();
+        }
+
+    }
+
+    public static byte[] toByteArray(double value) {
+        byte[] bytes = new byte[8];
+        ByteBuffer.wrap(bytes).putDouble(value);
+        return bytes;
+    }
+
+    public static double toDouble(byte[] bytes) {
+        return ByteBuffer.wrap(bytes).getDouble();
+    }
+
+    public byte[] parseTouch(float x, float y){
+        byte[] button = {0};
+        double[] xy = {0.0, 0.0};
+        byte[] theOut = null;
+        /* main touch */
+        if(
+                x > (touch_center_x-touch_delta_x) &
+                x < (touch_center_x+touch_delta_x) &
+                y > (touch_center_y-touch_delta_y) &
+                y < (touch_center_y+touch_delta_y)){
+            button = ("t").getBytes();
+            double xx = -(x-touch_center_x)/touch_delta_x;
+            double yy = -(y-touch_center_y)/touch_delta_y;
+
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( button );
+                outputStream.write( toByteArray(xx) );
+                outputStream.write(toByteArray(yy));
+                txt1.setText( String.format("%.3f", yy));
+                outputStream.toByteArray();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+
+
+
+        }
+
+        return theOut;
+
+
+    }
 }
+
