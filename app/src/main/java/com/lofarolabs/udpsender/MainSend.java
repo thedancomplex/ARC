@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.graphics.Bitmap;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import android.text.SpannableString;
 
 public class MainSend extends ActionBarActivity {
     private static final String host = null;
@@ -205,22 +206,10 @@ public class MainSend extends ActionBarActivity {
         txt_touch_y.setText(Integer.toString(y));
         //txt1.setText(Integer.toString(event.getPointerCount()));
 
-        /*
-        try {
-            client_send_buff(Integer.toString(x));
-            //txt1.setText(modifiedSentence);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            txt1.setText(e.toString());
-            e.printStackTrace();
-        }
-*/
-
-
         switch (event.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
-
+/*
                 if(pressedUp == false){
                     pressedUp = true;
                     try {
@@ -234,6 +223,7 @@ public class MainSend extends ActionBarActivity {
                         e.printStackTrace();
                     }
                 }
+                */
                 break;
             case MotionEvent.ACTION_UP:
 
@@ -254,18 +244,24 @@ public class MainSend extends ActionBarActivity {
                 txt1.setText("dand");
                 float xx = event.getX(i);
                 float yy = event.getY(i);
-                parseTouch(xx,yy);
-                try {
 
-                    if(i == 2) {
-                        client_send_buff(Integer.toString((int) xx));
+                boolean openFlag = false;
+                if (!(client_socket == null)) {
+                    openFlag = (client_socket.getLocalPort() == Integer.parseInt(txt_port.getText().toString())) & !client_socket.isClosed();
+                }
+
+                if(openFlag) {
+                    String buff = parseTouch(xx, yy);
+                    if(buff != null) {
+                        try {
+                            client_send_buff(buff);
+                            //txt1.setText(modifiedSentence);
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            txt1.setText(e.toString());
+                            e.printStackTrace();
+                        }
                     }
-
-                    //txt1.setText(modifiedSentence);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    txt1.setText(e.toString());
-                    e.printStackTrace();
                 }
 
             }
@@ -313,7 +309,7 @@ public class MainSend extends ActionBarActivity {
         send_data = str.getBytes();
         DatagramPacket send_packet = new DatagramPacket(send_data,str.length(), IPAddress, mPort);
         client_socket.send(send_packet);
-        try {Thread.sleep(100);
+        try {Thread.sleep(10);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -343,42 +339,265 @@ public class MainSend extends ActionBarActivity {
         return ByteBuffer.wrap(bytes).getDouble();
     }
 
-    public byte[] parseTouch(float x, float y){
+    public String parseTouch(float x, float y){
         byte[] button = {0};
         double[] xy = {0.0, 0.0};
-        byte[] theOut = null;
+        String theOut = null;
+
+
         /* main touch */
         if(
                 x > (touch_center_x-touch_delta_x) &
                 x < (touch_center_x+touch_delta_x) &
                 y > (touch_center_y-touch_delta_y) &
-                y < (touch_center_y+touch_delta_y)){
+                y < (touch_center_y+touch_delta_y))
+        {
             button = ("t").getBytes();
-            double xx = -(x-touch_center_x)/touch_delta_x;
+            double xx = (x-touch_center_x)/touch_delta_x;
             double yy = -(y-touch_center_y)/touch_delta_y;
 
             try {
 
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-                outputStream.write( button );
-                outputStream.write( toByteArray(xx) );
-                outputStream.write(toByteArray(yy));
-                txt1.setText( String.format("%.3f", yy));
-                outputStream.toByteArray();
+                outputStream.write( ("touch").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%.3f", xx)).getBytes());
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%.3f", yy)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 txt1.setText(e.toString());
                 e.printStackTrace();
             }
 
+        }
+        /* left joystick */
+        else if(
+                (Math.sqrt((x-joy_left_center_x)*(x-joy_left_center_x) + (y-joy_left_center_y)*(y-joy_left_center_y)) < joy_left_radius))
+        {
+            button = ("t").getBytes();
+            double xx = (x-joy_left_center_x)/joy_left_radius;
+            double yy = -(y-joy_left_center_y)/joy_left_radius;
 
+            try {
 
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("joy left").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%.3f", xx)).getBytes());
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%.3f", yy)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+        /* right joystick */
+        else if(
+                (Math.sqrt((x-joy_right_center_x)*(x-joy_right_center_x) + (y-joy_right_center_y)*(y-joy_right_center_y)) < joy_right_radius))
+        {
+            button = ("t").getBytes();
+            double xx = (x-joy_right_center_x)/joy_right_radius;
+            double yy = -(y-joy_right_center_y)/joy_right_radius;
+
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("joy right").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%.3f", xx)).getBytes());
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%.3f", yy)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
 
         }
 
+        /* @button */
+        else if(
+                (Math.sqrt((x-button_at_center_x)*(x-button_at_center_x) + (y-button_at_center_y)*(y-button_at_center_y)) < button_at_radius))
+        {
+            button = ("t").getBytes();
+            double xx = (x-button_at_center_x)/button_at_radius;
+            double yy = -(y-button_at_center_y)/button_at_radius;
+
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("button @").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%d", 1)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+
+
+        /* #button */
+        else if(
+                (Math.sqrt((x-button_hash_center_x)*(x-button_hash_center_x) + (y-button_hash_center_y)*(y-button_hash_center_y)) < button_hash_radius))
+        {
+            button = ("t").getBytes();
+            double xx = (x-button_hash_center_x)/button_hash_radius;
+            double yy = -(y-button_hash_center_y)/button_hash_radius;
+
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("button #").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%d", 1)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+
+
+        /* %button */
+        else if(
+                (Math.sqrt((x-button_percent_center_x)*(x-button_percent_center_x) + (y-button_percent_center_y)*(y-button_percent_center_y)) < button_percent_radius))
+        {
+            button = ("t").getBytes();
+            double xx = (x-button_percent_center_x)/button_percent_radius;
+            double yy = -(y-button_percent_center_y)/button_percent_radius;
+
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("button %").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%d", 1)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+
+        /* &button */
+        else if(
+                (Math.sqrt((x-button_and_center_x)*(x-button_and_center_x) + (y-button_and_center_y)*(y-button_and_center_y)) < button_and_radius))
+        {
+            button = ("t").getBytes();
+            double xx = (x-button_and_center_x)/button_and_radius;
+            double yy = -(y-button_and_center_y)/button_and_radius;
+
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("button &").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%d", 1)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+
+        /* start button */
+        else if(
+                x > (button_start_center_x-button_start_delta_x) &
+                x < (button_start_center_x+button_start_delta_x) &
+                y > (button_start_center_y-button_start_delta_y) &
+                y < (button_start_center_y+button_start_delta_y))
+        {
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("button start").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%d", 1)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+
+        /* select button */
+        else if(
+                x > (button_select_center_x-button_select_delta_x) &
+                x < (button_select_center_x+button_select_delta_x) &
+                y > (button_select_center_y-button_select_delta_y) &
+                y < (button_select_center_y+button_select_delta_y))
+        {
+            try {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+                outputStream.write( ("button select").getBytes() );
+                outputStream.write( (" ").getBytes() );
+                outputStream.write( (String.format("%d", 1)).getBytes());
+                //outputStream.write( toByteArray(xx) );
+                //outputStream.write(toByteArray(yy));
+                txt1.setText(outputStream.toString());
+                //outputStream.toByteArray();
+                theOut = outputStream.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                txt1.setText(e.toString());
+                e.printStackTrace();
+            }
+
+        }
+
+
+
         return theOut;
-
-
     }
 }
 
