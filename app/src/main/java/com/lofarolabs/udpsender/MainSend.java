@@ -85,6 +85,8 @@ public class MainSend extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setIcon(R.drawable.ic_launcher_arc);
 
         mActivePointers = new SparseArray<PointF>();
 
