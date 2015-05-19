@@ -1,3 +1,28 @@
+/*
+Copyright (c) 2015, Daniel M. Lofaro
+All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the author nor the names of its contributors may
+      be used to endorse or promote products derived from this software
+      without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 package com.lofarolabs.udpsender;
 
 import android.support.v7.app.ActionBarActivity;
@@ -31,6 +56,73 @@ import android.graphics.Bitmap;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import android.text.SpannableString;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Build;
+
+
+
+public class UDP_Server
+{
+    private AsyncTask<Void, Void, Void> async;
+    private boolean Server_aktiv = true;
+
+    @SuppressLint("NewApi")
+    public void runUdpServer()
+    {
+        async = new AsyncTask<Void, Void, Void>()
+        {
+            @Override
+            protected Void doInBackground(Void... params)
+            {
+                byte[] lMsg = new byte[10000000];
+                DatagramPacket dp = new DatagramPacket(lMsg, lMsg.length);
+                DatagramSocket ds = null;
+
+                try
+                {
+                    ds = new DatagramSocket(5005); // port
+
+                    while(Server_aktiv)
+                    {
+                        ds.receive(dp);
+
+                        Intent i = new Intent();
+                        i.setAction(Main.MESSAGE_RECEIVED);
+                        i.putExtra(Main.MESSAGE_STRING, new String(lMsg, 0, dp.getLength()));
+                        Main.MainContext.getApplicationContext().sendBroadcast(i);
+                    }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                finally
+                {
+                    if (ds != null)
+                    {
+                        ds.close();
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= 11) async.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        else async.execute();
+    }
+
+    public void stop_UDP_Server()
+    {
+        Server_aktiv = false;
+    }
+}
+
+
 
 public class MainSend extends ActionBarActivity {
     private static final String host = null;
